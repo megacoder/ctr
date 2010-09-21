@@ -1,0 +1,38 @@
+#!/bin/zsh
+# vim: ts=8 sw=8
+ME=$(basename $0)
+USAGE="usage: ${ME} [-t tabstop] [-w wid] [file..]"
+
+ts=8
+wid=80
+
+while getopts :t:w: c
+do
+	case "${c}" in
+	t )	ts="${OPTARG}";;
+	w )	wid="${OPTARG}";;
+	* )	echo "${USAGE}" >&2; exit 1;;
+	esac
+done
+shift $(expr ${OPTIND} - 1)
+
+expand -t"${ts}" $@						|
+awk -v width="${wid}" '
+BEGIN	{
+	if( width == 0 )	{
+		width = 80
+	}
+}
+/./		{
+	sub( /^[ \t]*/, "" )
+	sub( /[ \t]*$/, "" )
+	padding = int( (width - length) / 2 )
+	if( padding > 0 )	{
+		printf( "%*s%s\n", padding, " ", $0 )
+	} else	{
+		print
+	}
+}
+END		{
+}
+' -
